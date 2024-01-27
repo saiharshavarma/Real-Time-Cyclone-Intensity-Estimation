@@ -1,5 +1,4 @@
-from django.shortcuts import render
-
+from django.shortcuts import render, HttpResponse
 import time
 from selenium import webdriver
 from selenium.webdriver.common.by import By
