@@ -12,10 +12,11 @@ def fetchRealTimeData():
     # Set up Chrome options for headless mode
     chrome_options = Options()
     chrome_options.add_argument('--headless')  # Enable headless mode
+    chrome_options.add_argument('--headless=new')  # Enable headless mode
     chrome_options.add_argument('--disable-gpu')  # Disable GPU acceleration, necessary for headless mode on some systems
 
     # Create a Chrome driver with the specified options
-    driver = webdriver.Chrome()
+    driver = webdriver.Chrome(options=chrome_options)
     driver.get("https://www.google.com/")
     driver.get('https://mosdac.gov.in/live/index_one.php?url_name=india')
 

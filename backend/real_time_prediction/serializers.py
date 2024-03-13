@@ -5,4 +5,4 @@ from .models import RealTimePrediction
 class RealTimePredictionSerializer(serializers.ModelSerializer):
     class Meta:
         model = RealTimePrediction
-        fields = ['id', 'prediction', 'original_img', 'processed_img', 'level_sets_img', 'timestamp']
+        fields = ['id', 'wind', 'pressure', 't_number', 'category', 'original_img', 'processed_img', 'timestamp']

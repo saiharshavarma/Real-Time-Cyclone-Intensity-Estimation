@@ -26,7 +26,7 @@ SECRET_KEY = "django-insecure-s7!#cr5y1u$)38tf5gidpetgo!^&(@*^u*7(uf)rg7p&&)#fvv
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["*"]
 
 
 # Application definition
@@ -112,7 +112,7 @@ AUTH_PASSWORD_VALIDATORS = [
 
 LANGUAGE_CODE = "en-us"
 
-TIME_ZONE = "UTC"
+TIME_ZONE =  'Asia/Kolkata'
 
 USE_I18N = True
 
@@ -133,5 +133,4 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
-import os
 os.environ["KMP_DUPLICATE_LIB_OK"]="TRUE"

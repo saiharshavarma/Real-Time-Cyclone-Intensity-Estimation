@@ -11,10 +11,18 @@ from skimage.color import rgb2gray
 from skimage.segmentation import chan_vese
 from django.core.files.base import ContentFile
 import io
+import cv2
 from PIL import Image
 
 # Load the model when the module is imported
 loaded_model = tf.keras.models.load_model('model.h5')
+
+def apply_DoG(image):
+    image_uint8 = (image * 255).astype(np.uint8)
+    blurred1 = cv2.GaussianBlur(image_uint8, (5, 5), 1.0)
+    blurred2 = cv2.GaussianBlur(image_uint8, (9, 9), 2.0)
+    dog_image = blurred1 - blurred2
+    return dog_image.astype(np.float32) / 255
 
 def image_segmentation_level_sets(image):
     img_gray = rgb2gray(image)
@@ -36,7 +44,21 @@ def load_and_preprocess_single_image(image_path):
     except Exception as err:
         print(err)
         return None
-    
+
+def getOtherMetrics(wind_speed):
+    if wind_speed <= 65:
+        return 1000, 1, 0
+    elif wind_speed <= 90:
+        return 987, 4, 1
+    elif wind_speed <= 102:
+        return 970, 5, 2
+    elif wind_speed <= 115:
+        return 960, 5.5, 3
+    elif wind_speed <= 140:
+        return 948, 6, 4
+    else:
+        return 921, 7, 5   
+
 def predictRealTime():
     global loaded_model  # Access the globally loaded model
     fetchRealTimeData()
@@ -61,26 +83,23 @@ def predictRealTime():
         original_img = ContentFile(original_buffer.read(), name='original.png')
 
         # Convert NumPy arrays to PIL images and save processed image
+        processed_image = image_segmentation_level_sets(original_image)
         processed_pil_image = Image.fromarray((processed_image[0] * 255).astype(np.uint8))
         processed_buffer = io.BytesIO()
         processed_pil_image.save(processed_buffer, format='PNG')
         processed_buffer.seek(0)
         processed_img = ContentFile(processed_buffer.read(), name='processed.png')
 
-        # Perform image segmentation and save level sets image
-        level_sets_image = image_segmentation_level_sets(processed_image[0])
-        level_sets_pil_image = Image.fromarray((level_sets_image * 255).astype(np.uint8))
-        level_sets_buffer = io.BytesIO()
-        level_sets_pil_image.save(level_sets_buffer, format='PNG')
-        level_sets_buffer.seek(0)
-        level_sets_img = ContentFile(level_sets_buffer.read(), name='levelsets.png')
+        pressure, t_number, category = getOtherMetrics(float(prediction[0][0]))
 
         # Create and save RealTimePrediction object
         cyclone_intensity = RealTimePrediction.objects.create(
-            prediction=float(prediction[0][0]), 
+            wind=float(prediction[0][0]), 
+            pressure=pressure,
+            t_number=t_number,
+            category=category,
             original_img=original_img, 
-            processed_img=processed_img, 
-            level_sets_img=level_sets_img
+            processed_img=processed_img,
         )
         cyclone_intensity.save()
     else:
@@ -92,4 +111,5 @@ class RealTimePredictionViewSet(viewsets.ModelViewSet):
     queryset = RealTimePrediction.objects.all().order_by('id')
 
     def list(self, request):
+        #predictRealTime()
         return Response(RealTimePredictionSerializer(RealTimePrediction.objects.order_by('-timestamp').first()).data)
